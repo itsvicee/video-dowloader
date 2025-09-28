@@ -5,6 +5,8 @@ import yt_dlp
 import threading
 from pathlib import Path
 import os
+import sys
+import platform
 
 # --- Configuración Inicial ---
 # Establece la apariencia de la aplicación (System, Dark, Light)
@@ -100,6 +102,22 @@ class VideoDownloaderApp(ctk.CTk):
         download_thread = threading.Thread(target=self.download_video, args=(url,))
         download_thread.start()
 
+    def _get_ffmpeg_path(self):
+        """Determina la ruta del ejecutable FFmpeg empaquetado."""
+        
+        # Define el nombre del ejecutable según el sistema operativo
+        ffmpeg_exe = "ffmpeg.exe" if platform.system() == "Windows" else "ffmpeg"
+
+        if getattr(sys, 'frozen', False):
+            # Estamos ejecutando como un archivo empaquetado (.exe)
+            base_path = sys._MEIPASS
+        else:
+            # Estamos ejecutando como un script de Python normal
+            base_path = os.path.dirname(os.path.abspath(__file__))
+        
+        # Devuelve la ruta completa al ejecutable de FFmpeg
+        return os.path.join(base_path, ffmpeg_exe)
+
     def download_video(self, url):
         """
         Función que se ejecuta en el hilo y realiza la descarga con yt-dlp.
@@ -113,6 +131,7 @@ class VideoDownloaderApp(ctk.CTk):
                 'outtmpl': os.path.join(self.download_path, '%(title)s.%(ext)s'),
                 'progress_hooks': [self.progress_hook],
                 'noplaylist': True, # Descargar solo el video, no la lista de reproducción
+                'ffmpeg_location': self._get_ffmpeg_path()
             }
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -155,7 +174,6 @@ class VideoDownloaderApp(ctk.CTk):
         """Restaura la interfaz a su estado inicial después de una descarga."""
         self.download_button.configure(state="normal", text="Descargar Video")
         self.url_entry.delete(0, 'end') # Limpia el campo de URL
-
 
 if __name__ == "__main__":
     app = VideoDownloaderApp()

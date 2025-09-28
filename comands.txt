@@ -1,0 +1,3 @@
+pyinstaller --onefile --windowed --add-data "ffmpeg:." --icon="tu_icono.icns" downloader.py (Para MAC)
+
+pyinstaller --onefile --windowed --add-data "ffmpeg.exe;." downloader.py (Para Windows)
